@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+:root {
+  font-family: "Avenir Next", "Trebuchet MS", "Gill Sans", sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: #1e293b;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+@keyframes micro-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes micro-pulse {
+  0%, 100% {
+    opacity: 0.62;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes micro-shimmer {
+  0% {
+    background-position: -220% 0;
+  }
+  100% {
+    background-position: 220% 0;
+  }
+}
+
+.micro-fade-up {
+  animation: micro-fade-up 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.micro-pulse {
+  animation: micro-pulse 1.4s ease-in-out infinite;
+}
+
+.micro-replan-transition {
+  transition:
+    transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.micro-replanning-soften {
+  transform: scale(0.995);
+  opacity: 0.92;
+}
+
+.micro-hover-lift {
+  transition:
+    transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.micro-hover-lift:hover {
+  transform: translateY(-2px) scale(1.008);
+}
+
+.micro-skeleton {
+  background-image: linear-gradient(90deg, #e2e8f0 0%, #f8fafc 50%, #e2e8f0 100%);
+  background-size: 220% 100%;
+  animation: micro-shimmer 1.2s linear infinite;
+}
+
+.micro-stagger > * {
+  animation: micro-fade-up 0.46s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.micro-stagger > *:nth-child(1) { animation-delay: 40ms; }
+.micro-stagger > *:nth-child(2) { animation-delay: 90ms; }
+.micro-stagger > *:nth-child(3) { animation-delay: 140ms; }
+.micro-stagger > *:nth-child(4) { animation-delay: 190ms; }
+.micro-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.micro-stagger > *:nth-child(6) { animation-delay: 290ms; }
+.micro-stagger > *:nth-child(7) { animation-delay: 340ms; }
+.micro-stagger > *:nth-child(8) { animation-delay: 390ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .micro-fade-up,
+  .micro-pulse,
+  .micro-stagger > *,
+  .micro-skeleton {
+    animation: none !important;
+  }
+
+  .micro-replan-transition,
+  .micro-hover-lift {
+    transition: none !important;
+  }
+
+  .micro-replanning-soften,
+  .micro-hover-lift:hover {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
