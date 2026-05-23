@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import {
+  buildApiUrl,
+  isGatewayStatus,
+  normalizeGatewayStatusMessage,
+  normalizeNetworkErrorMessage,
+} from "../config/api"
 import { useTripStore } from "../store/tripStore"
 import type { AgentChatMessage, TripPlan } from "../types/trip"
-
-const API_BASE_URL = "http://127.0.0.1:8000"
 
 type TripStreamEvent =
   | { type: "status"; message: string }
@@ -55,6 +59,7 @@ async function buildApiRequestError(response: Response) {
     }
   }
 
+  message = normalizeGatewayStatusMessage(response.status, message)
   return new ApiRequestError(message, code, response.status)
 }
 
@@ -92,21 +97,58 @@ function normalizeTripError(message: string) {
     return "Ollama is not reachable on 127.0.0.1:11434. Start Ollama and retry."
   }
 
-  return message
+  return normalizeNetworkErrorMessage(message)
 }
 
-function buildAssistantSummary(trip: TripPlan, instruction: string) {
-  const safeItinerary = Array.isArray(trip.itinerary) ? trip.itinerary : []
-  const firstDay = safeItinerary[0]
-  if (!firstDay) {
-    return `Updated your plan for: "${instruction}"`
+const wait = (milliseconds: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, milliseconds)
+  })
+
+async function fetchWithGatewayRetry(input: RequestInfo | URL, init?: RequestInit) {
+  let lastResponse: Response | null = null
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    if (init?.signal?.aborted) {
+      throw new DOMException("The operation was aborted.", "AbortError")
+    }
+
+    try {
+      lastResponse = await fetch(input, init)
+    } catch (error) {
+      if (attempt === 0 && error instanceof TypeError) {
+        await wait(300)
+        continue
+      }
+      throw error
+    }
+
+    if (attempt === 0 && isGatewayStatus(lastResponse.status)) {
+      await wait(300)
+      continue
+    }
+
+    return lastResponse
   }
 
-  const safeActivities = Array.isArray(firstDay.activities)
-    ? firstDay.activities
-    : []
-  const highlights = safeActivities.slice(0, 2).join(" • ")
-  return `Done. I updated your itinerary for: "${instruction}". Day ${firstDay.day} now focuses on ${highlights}.`
+  return lastResponse as Response
+}
+
+function buildPlanningStartMessage(startLocation: string, destination: string, days: number, transportMode: string) {
+  const normalizedStartLocation = startLocation.trim()
+  const sourceLabel = normalizedStartLocation && normalizedStartLocation !== "Not provided"
+    ? normalizedStartLocation
+    : "your current location"
+  const tripLength = days === 1 ? "1-day" : `${days}-day`
+  const modeLabel = transportMode.trim() ? ` by ${transportMode.trim()}` : ""
+
+  return `Sure, I am creating a ${tripLength} itinerary from ${sourceLabel} to ${destination}${modeLabel}.`
+}
+
+function buildPlanningDoneMessage(trip: TripPlan, destination: string) {
+  const totalDays = Array.isArray(trip.itinerary) ? trip.itinerary.length : 0
+  const dayLabel = totalDays === 1 ? "1 day" : `${totalDays} days`
+  return `Done. Your new itinerary for ${destination} is ready (${dayLabel}). You can check the new itinerary now.`
 }
 
 function extractDaysFromPrompt(prompt: string) {
@@ -285,13 +327,30 @@ function AgentChat() {
     abortControllerRef.current = controller
 
     try {
+      appendChatMessage(
+        "assistant",
+        buildPlanningStartMessage(
+          resolvedStartLocation,
+          resolvedDestination,
+          resolvedDays,
+          resolvedTransportationMode
+        )
+      )
+
       setLoading(true)
       setTripMetadata({ error: null })
       clearStreamMessages()
       setStreamingStatus("Agent is updating your itinerary...")
       setAgentStatus("Thinking through your request...")
 
-      const response = await fetch(`${API_BASE_URL}/plan-trip/stream`, {
+      const healthResponse = await fetchWithGatewayRetry(buildApiUrl("/health"), {
+        signal: controller.signal,
+      })
+      if (!healthResponse.ok) {
+        throw await buildApiRequestError(healthResponse)
+      }
+
+      const response = await fetchWithGatewayRetry(buildApiUrl("/plan-trip/stream"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -366,7 +425,7 @@ function AgentChat() {
       }
 
       if (plannedTrip) {
-        appendChatMessage("assistant", buildAssistantSummary(plannedTrip, trimmedPrompt))
+        appendChatMessage("assistant", buildPlanningDoneMessage(plannedTrip, resolvedDestination))
       } else {
         appendChatMessage("assistant", "I could not update the plan this time. Please try again.")
       }

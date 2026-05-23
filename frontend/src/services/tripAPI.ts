@@ -1,5 +1,4 @@
-// API service to communicate with the backend
-const API_BASE_URL = 'http://127.0.0.1:8000';
+import { buildApiUrl } from "../config/api"
 
 export interface TripPlanResponse {
   response: string;
@@ -39,7 +38,7 @@ function formatPlan(plan: StructuredTripPlan): string {
 export const tripAPI = {
   async planTrip(destination: string, duration: number, interests: string[]): Promise<TripPlanResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}/plan-trip`, {
+      const response = await fetch(buildApiUrl("/plan-trip"), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +71,7 @@ export const tripAPI = {
 
   async getHealth(): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE_URL}/health`);
+      const response = await fetch(buildApiUrl("/health"));
       return response.ok;
     } catch {
       return false;

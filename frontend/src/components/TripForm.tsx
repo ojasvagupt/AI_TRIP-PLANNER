@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+  buildApiUrl,
+  isGatewayStatus,
+  normalizeGatewayStatusMessage,
+  normalizeNetworkErrorMessage,
+} from "../config/api"
 import { useTripStore } from "../store/tripStore"
 import type { TripPlan } from "../types/trip"
-
-const API_BASE_URL = "http://127.0.0.1:8000"
 
 type TripStreamEvent =
   | { type: "status"; message: string }
@@ -55,6 +59,7 @@ async function buildApiRequestError(response: Response) {
     }
   }
 
+  message = normalizeGatewayStatusMessage(response.status, message)
   return new ApiRequestError(message, code, response.status)
 }
 
@@ -85,7 +90,41 @@ function normalizeTripError(message: string) {
     return "Ollama is not reachable on 127.0.0.1:11434. Start Ollama and retry."
   }
 
-  return message
+  return normalizeNetworkErrorMessage(message)
+}
+
+const wait = (milliseconds: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, milliseconds)
+  })
+
+async function fetchWithGatewayRetry(input: RequestInfo | URL, init?: RequestInit) {
+  let lastResponse: Response | null = null
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    if (init?.signal?.aborted) {
+      throw new DOMException("The operation was aborted.", "AbortError")
+    }
+
+    try {
+      lastResponse = await fetch(input, init)
+    } catch (error) {
+      if (attempt === 0 && error instanceof TypeError) {
+        await wait(300)
+        continue
+      }
+      throw error
+    }
+
+    if (attempt === 0 && isGatewayStatus(lastResponse.status)) {
+      await wait(300)
+      continue
+    }
+
+    return lastResponse
+  }
+
+  return lastResponse as Response
 }
 
 function formatInterests(interests: string[]) {
@@ -237,7 +276,14 @@ function TripForm() {
         setAutoReplanning(true)
       }
 
-      const response = await fetch(`${API_BASE_URL}/plan-trip/stream`, {
+      const healthResponse = await fetchWithGatewayRetry(buildApiUrl("/health"), {
+        signal: controller.signal,
+      })
+      if (!healthResponse.ok) {
+        throw await buildApiRequestError(healthResponse)
+      }
+
+      const response = await fetchWithGatewayRetry(buildApiUrl("/plan-trip/stream"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
