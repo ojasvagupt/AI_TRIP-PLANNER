@@ -33,6 +33,18 @@ You must run all 3 for the app to work.
 The UI updates in real time as the user refines prompt instructions in the chat panel, with streaming itinerary updates reflected directly in the interface.
 ![Real-time GenUI rendering while prompt updates happen](docs/screenshots/07-realtime-genui-rendering.png)
 
+### 8) Route and waypoints presented on Google Maps
+The itinerary waypoints can be presented as a real route path on Google Maps so users can visualize long-distance travel and stop ordering.
+![Route and waypoints presented on Google Maps](docs/screenshots/08-route-maps-presentation.png)
+
+### 9) Backend presented on localhost:8000
+FastAPI backend is served on `127.0.0.1:8000`. Seeing `{"detail":"Not Found"}` on the root URL is expected. Use `/health` for a success check.
+![Backend presented on localhost:8000](docs/screenshots/09-backend-localhost-8000.png)
+
+### 10) Ollama presented on localhost:11434
+Ollama runtime is expected on `127.0.0.1:11434` and should show that it is running before trip generation starts.
+![Ollama presented on localhost:11434](docs/screenshots/10-ollama-localhost-11434.png)
+
 ## 1) Prerequisites
 
 Install these first:
