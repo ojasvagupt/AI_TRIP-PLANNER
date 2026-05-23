@@ -29,6 +29,10 @@ You must run all 3 for the app to work.
 ### 6) Itinerary with visual cards and AI chat suggestions
 ![Itinerary with visual cards and AI chat suggestions](docs/screenshots/06-itinerary-and-chat.png)
 
+### 7) Real-time GenUI rendering while the user updates the prompt
+The UI updates in real time as the user refines prompt instructions in the chat panel, with streaming itinerary updates reflected directly in the interface.
+![Real-time GenUI rendering while prompt updates happen](docs/screenshots/07-realtime-genui-rendering.png)
+
 ## 1) Prerequisites
 
 Install these first:
