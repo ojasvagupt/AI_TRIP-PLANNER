@@ -9,42 +9,6 @@ This project has 3 parts:
 
 You must run all 3 for the app to work.
 
-## Product Screenshots
-
-### 1) Budget breakup and itinerary cards
-![Budget breakup and itinerary cards](docs/screenshots/01-budget-and-chat.png)
-
-### 2) Multi-day itinerary with edit/delete controls
-![Multi-day itinerary with edit/delete controls](docs/screenshots/02-day2-day3.png)
-
-### 3) Day 4 and Day 5 planning view
-![Day 4 and Day 5 planning view](docs/screenshots/03-day4-day5.png)
-
-### 4) Agent chat request while itinerary is being generated
-![Agent chat request while itinerary is being generated](docs/screenshots/04-chat-streaming-status.png)
-
-### 5) Agent chat confirmation messages
-![Agent chat confirmation messages](docs/screenshots/05-chat-completion.png)
-
-### 6) Itinerary with visual cards and AI chat suggestions
-![Itinerary with visual cards and AI chat suggestions](docs/screenshots/06-itinerary-and-chat.png)
-
-### 7) Real-time GenUI rendering while the user updates the prompt
-The UI updates in real time as the user refines prompt instructions in the chat panel, with streaming itinerary updates reflected directly in the interface.
-![Real-time GenUI rendering while prompt updates happen](docs/screenshots/07-realtime-genui-rendering.png)
-
-### 8) Route and waypoints presented on Google Maps
-The itinerary waypoints can be presented as a real route path on Google Maps so users can visualize long-distance travel and stop ordering.
-![Route and waypoints presented on Google Maps](docs/screenshots/08-route-maps-presentation.png)
-
-### 9) Backend presented on localhost:8000
-FastAPI backend is served on `127.0.0.1:8000`. Seeing `{"detail":"Not Found"}` on the root URL is expected. Use `/health` for a success check.
-![Backend presented on localhost:8000](docs/screenshots/09-backend-localhost-8000.png)
-
-### 10) Ollama presented on localhost:11434
-Ollama runtime is expected on `127.0.0.1:11434` and should show that it is running before trip generation starts.
-![Ollama presented on localhost:11434](docs/screenshots/10-ollama-localhost-11434.png)
-
 ## 1) Prerequisites
 
 Install these first:
